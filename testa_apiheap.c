@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "memalloc.h" 							
+#include "apiheap.h" 							
 
 extern void *original_brk;
 
