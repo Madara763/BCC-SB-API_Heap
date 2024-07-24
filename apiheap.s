@@ -1,6 +1,19 @@
+.section .data
+
+  #define as variaveis globais
+  .global BRK
+  BRK: .quad 0
+  .global BRK_ORIGINAL
+  BRK_ORIGINAL: .quad 0 
+
+
 .section .text
 #definicao dos rotulos 
-.global setup_br, dismiss_brk, memory_alloc, memory_free
+.global setup_brk, dismiss_brk, memory_alloc, memory_free
+
+#Procedimentos auxiliares
+
+
 
 #implementacao dos procedimentos
 
@@ -8,6 +21,16 @@
 setup_brk:
   pushq %rbp
   movq %rsp, %rbp
+  
+  #pega o brk via syscall
+  movq $12, %rax
+  movq $0, %rdi
+  syscall 
+ 
+  #seta o brk e salva o primeiro bkp 'heap zerada'
+  movq %rax, BRK
+  movq %rax, BRK_ORIGINAL
+
   popq %rbp
   ret
 
@@ -15,6 +38,13 @@ setup_brk:
 dismiss_brk:
   pushq %rbp
   movq %rsp, %rbp
+  
+  #seta o BRK com o valor original 'limpa a heap' 
+  movq $12, %rax
+  movq $BRK_ORIGINAL, %rdi
+  syscall  
+  movq %rax, BRK  
+
   popq %rbp
   ret
 

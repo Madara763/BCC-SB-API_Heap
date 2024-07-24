@@ -3,12 +3,11 @@
 
 #include "apiheap.h" 							
 
-extern void *original_brk;
+extern int *BRK;
 
 int main(){
- 
-
-
- 
+  printf("Valor brk: %i\n",BRK ); 
+  setup_brk(); 
+  printf("Valor brk: %i\n",BRK );
   return 0;
 }

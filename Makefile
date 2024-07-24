@@ -1,17 +1,14 @@
-#gerar "warnings" detalhados e infos de depuração
-CFLAGS = -o -g 
-LDLIBS = 
-objs= apiheap.o 
+CC = gcc
+AS = as
+CFLAGS = -g -no-pie
+LFLAGS = -lm -z noexecstack
 
-# regra default (primeira regra)
-all:	testa_apiheap	
- 
-# regras de ligacao
-testa_apiheap:	$(objs)
- 
-# regras de 'compilação'
-testa_apiheap.o:	testa_apiheap.c
-apiheap.o:	apiheap.s
-	as -o apiheap.o apiheap.s
+testa_apiheap: testa_apiheap.o apiheap.o
+	$(CC) $(CFLAGS) -o testa_apiheap testa_apiheap.o apiheap.o $(LFLAGS)
 
-#Sem clean e purge dessa vez, amamos os .o
+apiheap.o: apiheap.s
+	$(AS) $(CFLAGS) -c apiheap.s -o apiheap.o
+
+testa_apiheap.o: testa_apiheap.c apiheap.h
+	$(CC) $(CFLAGS) -c testa_apiheap.c -o testa_apiheap.o
+
