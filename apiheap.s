@@ -51,9 +51,136 @@ dismiss_brk:
 #aloca seguindo a politica worst-fit
 #recebe a quantidade de bytes como unico parametro
 #devolve um endereco para o inicio do bloco alocado
+# %r8 armazeza o parametro (valor)
+# %r9 armazena o BRK_ORIGINAL (endereco)
+# %r10 aramzena o maior espaco livre ate o momento (valor)
+# %r11 endereco do maior valor (endereco)
+# %r13 e  %r14 sao usados como auxiliar
+# %r15 eh usado como indice (endereco)
 memory_alloc:
   pushq %rbp
   movq %rsp, %rbp
+  
+  #recebe o numero de bytes a ser alocado em %r8
+  movq %rdi, %r8
+  #%r15 aramazena o endereco atual
+  movq BRK_ORIGINAL, %r15
+  #inicializa %r10, que armazenara o maior espaco livre
+  movq $0, %r10
+
+  #movq $55555555, %r14
+  #jmp _finaliza_alocacao
+  
+
+
+  #PERCORRE A HEAP	
+  #compara o endereco atual com  brk
+  _compara_brk:
+    cmpq BRK, %r15
+    #se o endereco ainda nao tiver em brk 
+    jl _busca_proximo_bloco
+    #se ja tiver chego no fim da heap pula pras verificacoes
+    jmp _fim_busca
+  
+  _busca_proximo_bloco: 
+    #verifica se esta em uso
+    cmpb $0, (%r15)
+	#se tiver em uso avanca para o proximo
+    je _avanca_indice
+	#se tiver livre, verifica o tamanho necessario, e salva ele se for o maior
+    #ajusta %r14 para apontar para o tamanho
+    movq %r15, %r14
+	addq $1, %r14
+    #verifica o tamanho do bloco
+    cmpq %r8, (%r14)
+    jl _avanca_indice
+    #verifica se o tamanho eh o maior ate agr
+    cmpq %r10, (%r14)
+    jle _avanca_indice
+    #se chegar aqui o bloco esta livre e com espaco suficiente
+    #e eh o maior ate o momento
+    # salva o valor em r10 e o endereco em r11
+    movq (%r14), %r10
+    movq %r15, %r11
+    jmp _avanca_indice
+
+  _avanca_indice:
+    movq %r15, %r14
+    #ajusta %r14 para apontar para os 8 bytes do tamanho
+    addq $1, %r14
+    # armazena em %r13 o tamanho
+    movq (%r14), %r13
+    addq $9, %r13
+    #desloca o indice 
+    addq %r13, %r15
+    
+    jmp _compara_brk
+
+  #aqui decidimos onde sera o espaco alocado
+  _fim_busca:    
+    cmpq $0, %r10  
+    je _abre_novo_bloco
+    
+    #verificamos se da pra dividir o bloco atual
+    movq %r10, %r13
+    addq $10, %r13
+    cmpq %r13, %r10
+    jl reaproveita_bloco
+    
+    #aqui dividimos o maior bloco em 2
+    movq %r11, %r14
+    #desloca r14 pro inicio do bloco
+    addq $9, %r14
+    #desloca r14 pro fim do bloco
+    addq %r8, %r14
+    #r13 fica com o tamanho do bloco que sobra
+    movq %r10, %r13
+    subq %r8, %r13
+    #com r14 apontando pro fim do bloco, criamos o novo bloco 
+    movb $0, (%r14)
+    addq $1, %r14
+    movq %r13, (%r14)
+    
+    #modifica o registro do bloco
+    movq %r11, %r14
+    movb $1, (%r14)
+    addq $1, %r14
+    movq %r8, (%r14)
+    
+    jmp _finaliza_alocacao    
+
+  reaproveita_bloco: 
+    movq %r11, %r14
+    movb $1, (%r14)
+    addq $1, %r14
+    
+    jmp _finaliza_alocacao
+
+  _abre_novo_bloco:
+    movq BRK, %r14
+    movq BRK, %r13
+    addq $9, %r13
+    addq %r8, %r13
+	
+	#atualiza o brk
+    movq $12, %rax
+    movq %r13, %rdi
+    syscall
+    movq %rax, BRK
+    
+	#seta registro do novo bloco
+    movb $1, (%r14)
+    addq $1, %r14
+    movq %r8, (%r14)  
+ 
+    jmp _finaliza_alocacao
+  
+  _finaliza_alocacao:
+  #chegando aqui r14 aponta pro registro do novo bloco pro tamanho
+  #rax aponta pro inicio do nvo espaco de memoria
+  movq %r14, %rax
+  addq $8, %rax
+  
   popq %rbp
   ret
 
