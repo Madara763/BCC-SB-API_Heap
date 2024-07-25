@@ -84,7 +84,7 @@ memory_alloc:
   
   _busca_proximo_bloco: 
     #verifica se esta em uso
-    cmpb $0, (%r15)
+    cmpb $1, (%r15)
 	#se tiver em uso avanca para o proximo
     je _avanca_indice
 	#se tiver livre, verifica o tamanho necessario, e salva ele se for o maior
@@ -136,6 +136,7 @@ memory_alloc:
     #r13 fica com o tamanho do bloco que sobra
     movq %r10, %r13
     subq %r8, %r13
+	subq $9, %r13
     #com r14 apontando pro fim do bloco, criamos o novo bloco 
     movb $0, (%r14)
     addq $1, %r14
@@ -166,6 +167,9 @@ memory_alloc:
     movq $12, %rax
     movq %r13, %rdi
     syscall
+    movq $12, %rax
+    movq $0, %rdi
+    syscall
     movq %rax, BRK
     
 	#seta registro do novo bloco
@@ -190,6 +194,15 @@ memory_alloc:
 memory_free:
   pushq %rbp
   movq %rsp, %rbp
+    
+  #recebe o endereco a ser desalocado em %r8
+  movq %rdi, %r8
+  
+  #inicia desalocacao
+  movq %rdi, %r13
+  subq $9, %r13
+  movb $0, (%r13)  
+
   popq %rbp
   ret
 
