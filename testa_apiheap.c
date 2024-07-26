@@ -15,9 +15,9 @@ int main(){
   void *ptr=memory_alloc(100);
   printf("Valor ptr: %i\n",ptr );
   printf("Valor brk: %i\n",BRK );
-  
+  ptr=BRK+10;  
   printf("Desaloca: %i\n",memory_free(ptr));
-  
+  printf("Desaloca: %i\n",memory_free(ptr));  
 
 //  printf("ALLOCA 10 \n");
  // ptr=memory_alloc(10);

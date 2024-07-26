@@ -1,6 +1,6 @@
 .section .data
 
-  # define as variaveis globais
+# define as variaveis globais
   .global BRK
   BRK: .quad 0
   .global BRK_ORIGINAL
@@ -10,10 +10,6 @@
 .section .text
 # definicao dos rotulos 
 .global setup_brk, dismiss_brk, memory_alloc, memory_free
-
-# Procedimentos auxiliares
-
-
 
 # implementacao dos procedimentos
 
@@ -196,14 +192,31 @@ memory_free:
   pushq %rbp
   movq %rsp, %rbp
     
-  # recebe o endereco a ser desalocado em %r8
-  movq %rdi, %r8
-
+  # recebe o endereco a ser desalocado 
+  movq %rdi, %r13
+  
+  # testa se esta antes de brk 
+  cmpq BRK, %r13
+  jge _erro
+  
+  subq $9, %r13
+  movb (%r13), %cL
+  cmpb $1, %cL
+  jne _erro
+  
   #inicia desalocacao
   movq %rdi, %r13
+
   subq $9, %r13
   movb $0, (%r13) 
-     
+  # encerra com sucesso
+  movq $1, %rax 
   popq %rbp
   ret
+  
+  _erro:
+    movq $0, %rax
+    popq %rbp
+    ret
+
 
