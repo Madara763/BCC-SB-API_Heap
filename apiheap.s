@@ -61,9 +61,10 @@ memory_alloc:
   movq %rdi, %r8
   # %r15 aramazena o endereco atual
   movq BRK_ORIGINAL, %r15
-  # inicializa %r10, que armazenara o maior espaco livre
-  movq $0, %r10
-
+  # inicializa %r10, que armazenara o maior espaco livre 
+  #sera inicializado com o maior valor possivel em um .quad
+  movq $999999999, %r10
+  
   # PERCORRE A HEAP	
   # compara o endereco atual com  brk
   _compara_brk:
@@ -86,8 +87,9 @@ memory_alloc:
     cmpq %r8, (%r14)
     jl _avanca_indice
     # verifica se o tamanho eh o maior ate agr
+    #COMPARACAO  WORST / BEST FIT
     cmpq %r10, (%r14)
-    jle _avanca_indice
+    jg _avanca_indice
     
     # se chegar aqui o bloco esta livre e com espaco suficiente
     # e eh o maior ate o momento
@@ -110,7 +112,7 @@ memory_alloc:
 
   # aqui decidimos onde sera o espaco alocado
   _fim_busca:    
-    cmpq $0, %r10  
+    cmpq $999999999, %r10  
     je _abre_novo_bloco
     
     # verificamos se da pra dividir o bloco atual
