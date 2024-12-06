@@ -2,10 +2,6 @@
 
 Trabalho para a disciplina de Software Basico do curso de Ciencia da Computação - UFPR 24/01
 
-Alunos:
-Davi Garcia Lazzarin
-Edson ...(ta me ignorando no whats)
-
 Estruturação do programa;
 Arquivos:
 apiheap.h - headers em C
